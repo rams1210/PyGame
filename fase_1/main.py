@@ -179,3 +179,17 @@ class GreenCar(AbstractCar):
     """
     IMG = GREEN_CAR
     START_POS = (520, 75)   # carro 2
+
+def draw(win, car1, car2):
+    """
+    Desenha a cena completa do jogo.
+
+    Primeiro a pista é colocada no fundo, depois os carros,
+    e por fim a tela é atualizada.
+    """
+    win.blit(TRACK, (0, 0))
+    # Se quiser desenhar a borda da pista por cima da imagem da pista, use esta linha:
+    # win.blit(TRACK_BORDER, (0, 0))
+    car1.draw(win)
+    car2.draw(win)
+    pygame.display.update()
