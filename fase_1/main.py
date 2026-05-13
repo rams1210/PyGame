@@ -193,3 +193,29 @@ def draw(win, car1, car2):
     car1.draw(win)
     car2.draw(win)
     pygame.display.update()
+
+def handle_controls(car, keys, left, right, up, down):
+    """
+    Trata os controles de um carro.
+
+    A mesma função serve para os dois jogadores, mudando apenas
+    quais teclas representam esquerda, direita, frente e ré.
+    """
+    moved = False
+
+    if keys[left]:
+        car.rotate(left=True)
+        moved = True
+    if keys[right]:
+        car.rotate(right=True)
+        moved = True
+    if keys[up]:
+        car.move_forward()
+        moved = True
+    if keys[down]:
+        car.move_backward()
+        moved = True
+
+    # Se o jogador não estiver acelerando nem dando ré, o carro perde velocidade aos poucos.
+    if not keys[up] and not keys[down]:
+        car.reduce_speed()
