@@ -84,8 +84,8 @@ def normalize(x: float, y: float) -> tuple[float, float]:
         return 0.0, 0.0
     return x / dist, y / dist
 
-
 def offset_closed_polyline(points: list[tuple[int, int]], offset: float) -> list[tuple[int, int]]:
+    """Calcula as faixas laterais garantindo que a distância se mantenha nas curvas."""
     result: list[tuple[int, int]] = []
     n = len(points)
 
@@ -103,10 +103,18 @@ def offset_closed_polyline(points: list[tuple[int, int]], offset: float) -> list
         ox, oy = normalize(n1x + n2x, n1y + n2y)
         if ox == 0 and oy == 0:
             ox, oy = n1x, n1y
-            if ox == 0 and oy == 0:
-                ox, oy = n2x, n2y
 
-        result.append((int(x + ox * offset), int(y + oy * offset)))
+        dot = ox * n1x + oy * n1y
+        
+        # CÁLCULO SEGURO: Limita a aberração em curvas muito fechadas
+        if dot > 0.1:
+            length = offset / dot
+            # A TRAVA: Impede que o offset seja maior que 1.5x o espaço original
+            length = min(length, offset * 1.5) 
+        else:
+            length = offset
+
+        result.append((int(x + ox * length), int(y + oy * length)))
 
     return result
 
@@ -116,43 +124,126 @@ def centerline_points(level: int, track: pygame.Surface) -> list[tuple[int, int]
 
     if level == 2:
         raw = [
-            (0.12, 0.06),
-            (0.42, 0.06),
-            (0.54, 0.16),
-            (0.54, 0.34),
-            (0.80, 0.34),
-            (0.88, 0.50),
-            (0.81, 0.66),
-            (0.60, 0.66),
-            (0.60, 0.83),
-            (0.43, 0.91),
-            (0.18, 0.84),
-            (0.09, 0.66),
-            (0.09, 0.38),
-            (0.18, 0.20),
+            (0.12, 0.06), (0.42, 0.06), (0.54, 0.16), (0.54, 0.34),
+            (0.80, 0.34), (0.88, 0.50), (0.81, 0.66), (0.60, 0.66),
+            (0.60, 0.83), (0.43, 0.91), (0.18, 0.84), (0.09, 0.66),
+            (0.09, 0.38), (0.18, 0.20),
         ]
     else:
         raw = [
-            (0.10, 0.05),
-            (0.42, 0.05),
-            (0.54, 0.17),
-            (0.54, 0.36),
-            (0.82, 0.36),
-            (0.88, 0.50),
-            (0.82, 0.66),
-            (0.60, 0.66),
-            (0.60, 0.83),
-            (0.42, 0.92),
-            (0.18, 0.85),
-            (0.09, 0.66),
-            (0.09, 0.38),
-            (0.18, 0.20),
-        ]
+    (0.50, 0.10),
+    (0.56, 0.10),
+    (0.59, 0.10),
+    (0.64, 0.10),
+    (0.69, 0.10),
+    (0.72, 0.10),
+    (0.75, 0.10),
+    (0.79, 0.10),
+    (0.82, 0.10),
+    (0.84, 0.10),
+    (0.86, 0.11),
+    (0.88, 0.12),
+    (0.90, 0.14),
+    (0.90, 0.16),
+    (0.90, 0.21),
+    (0.90, 0.27),
+    (0.90, 0.29),
+    (0.89, 0.31),
+    (0.87, 0.32),
+    (0.86, 0.33),
+    (0.80, 0.33),
+    (0.74, 0.33),
+    (0.60, 0.33),
+    (0.57, 0.34),
+    (0.56, 0.35),
+    (0.54, 0.37),
+    (0.54, 0.40),
+    (0.54, 0.42),
+    (0.54, 0.44),
+    (0.56, 0.46),
+    (0.57, 0.47),
+    (0.59, 0.47),
+    (0.61, 0.48),
+    (0.84, 0.48),
+    (0.86, 0.48),
+    (0.88, 0.49),
+    (0.88, 0.50),
+    (0.89, 0.51),
+    (0.90, 0.52),
+    (0.90, 0.54),
+    (0.90, 0.84),
+    (0.90, 0.87),
+    (0.88, 0.90),
+    (0.86, 0.91),
+    (0.84, 0.91),
+    (0.82, 0.91),
+    (0.80, 0.91),
+    (0.77, 0.91),
+    (0.75, 0.90),
+    (0.73, 0.89),
+    (0.72, 0.86),
+    (0.71, 0.83),
+    (0.71, 0.72),
+    (0.70, 0.68),
+    (0.68, 0.67),
+    (0.66, 0.65),
+    (0.64, 0.65),
+    (0.60, 0.64),
+    (0.58, 0.65),
+    (0.57, 0.66),
+    (0.55, 0.67),
+    (0.54, 0.68),
+    (0.53, 0.70),
+    (0.52, 0.72),
+    (0.52, 0.74),
+    (0.52, 0.83),
+    (0.51, 0.86),
+    (0.49, 0.89),
+    (0.47, 0.90),
+    (0.45, 0.91),
+    (0.41, 0.91),
+    (0.38, 0.90),
+    (0.36, 0.89),
+    (0.35, 0.88),
+    (0.10, 0.63),
+    (0.09, 0.59),
+    (0.09, 0.57),
+    (0.10, 0.17),
+    (0.11, 0.13),
+    (0.13, 0.11),
+    (0.15, 0.10),
+    (0.17, 0.10),
+    (0.19, 0.10),
+    (0.20, 0.11),
+    (0.22, 0.12),
+    (0.23, 0.14),
+    (0.23, 0.16),
+    (0.24, 0.46),
+    (0.25, 0.48),
+    (0.27, 0.50),
+    (0.29, 0.51),
+    (0.32, 0.51),
+    (0.33, 0.51),
+    (0.36, 0.49),
+    (0.37, 0.46),
+    (0.38, 0.45),
+    (0.38, 0.15),
+    (0.40, 0.12),
+    (0.42, 0.10),
+    (0.45, 0.10),
+    (0.46, 0.10),
+    (0.48, 0.10),
+    (0.50, 0.10),
+]
 
     return [pct(w, h, x, y) for x, y in raw]
 
 
-def build_lane_paths(track: pygame.Surface, level: int, lane_offset: int = 16):
+def build_lane_paths(track: pygame.Surface, level: int, lane_offset: int = 24):
+    """
+    Aumentamos o lane_offset de 16 para 24 para garantir
+    que os carros fiquem mais afastados da linha do meio.
+    """
     center = centerline_points(level, track)
     left_lane = build_path(offset_closed_polyline(center, -lane_offset), density=18)
     right_lane = build_path(offset_closed_polyline(center, lane_offset), density=18)
@@ -268,7 +359,7 @@ def start_screen():
 
         WIN.fill(DARK)
         center_text(WIN, "AUTORAMA 2 JOGADORES", FONT_BIG, WHITE, 110)
-        center_text(WIN, "O carro segue uma faixa fixa da pista", FONT_MED, YELLOW, 220)
+        center_text(WIN, "Cada carro tem sua faixa exclusiva", FONT_MED, YELLOW, 220)
         center_text(WIN, "P1: W acelera / S freia", FONT_MED, WHITE, 280)
         center_text(WIN, "P2: UP acelera / DOWN freia", FONT_MED, WHITE, 330)
         center_text(WIN, "Cada fase termina com 5 voltas", FONT_SMALL, WHITE, 390)
@@ -362,10 +453,18 @@ def show_message_screen(title, lines, footer="Pressione ENTER para continuar"):
 def run_phase(level: int, player1_name: str, player2_name: str):
     global WIN
 
+    DEBUG_PATHS = True # <--- Deixe True para ver as linhas invisíveis
+
     grass, track, border, red_car_img, green_car_img = load_assets(level)
     WIN = pygame.display.set_mode(track.get_size())
 
-    lane_left, lane_right = build_lane_paths(track, level)
+    # Aumentado para 35 pixels de distância do centro para evitar colisões
+    lane_offset = 22 
+    
+    # Gerando os caminhos
+    center_raw_points = centerline_points(level, track)
+    lane_left, lane_right = build_lane_paths(track, level, lane_offset)
+    center_path = build_path(center_raw_points, density=18)
 
     car1 = SlotCar(red_car_img, lane_left)
     car2 = SlotCar(green_car_img, lane_right)
@@ -406,6 +505,16 @@ def run_phase(level: int, player1_name: str, player2_name: str):
         WIN.blit(track, (0, 0))
         WIN.blit(border, (0, 0))
 
+        # --- MODO DEBUG: DESENHANDO AS LINHAS ---
+        if DEBUG_PATHS:
+            if len(center_path) > 1:
+                pygame.draw.lines(WIN, YELLOW, True, center_path, 2) # Linha do Meio (amarela)
+            if len(lane_left) > 1:
+                pygame.draw.lines(WIN, RED, True, lane_left, 2)      # Pista do Carro 1 (vermelha)
+            if len(lane_right) > 1:
+                pygame.draw.lines(WIN, GREEN, True, lane_right, 2)   # Pista do Carro 2 (verde)
+        # ----------------------------------------
+
         car1.draw(WIN)
         car2.draw(WIN)
 
@@ -421,7 +530,6 @@ def run_phase(level: int, player1_name: str, player2_name: str):
 
         if winner is not None:
             return winner, car1.laps, car2.laps
-
 
 def load_phase2_module():
     phase2_path = os.path.join(PHASE2_DIR, "main.py")
@@ -485,9 +593,12 @@ def main():
         ],
     )
 
-    phase2_module = load_phase2_module()
-    phase2_winner, laps2_p1, laps2_p2 = phase2_module.run_phase_2(player1_name, player2_name)
-    show_phase_result(2, phase2_winner, player1_name, player2_name, laps2_p1, laps2_p2)
+    try:
+        phase2_module = load_phase2_module()
+        phase2_winner, laps2_p1, laps2_p2 = phase2_module.run_phase_2(player1_name, player2_name)
+        show_phase_result(2, phase2_winner, player1_name, player2_name, laps2_p1, laps2_p2)
+    except Exception as e:
+        print(f"Não foi possível carregar a fase 2. Erro: {e}")
 
     show_final_screen(phase1_winner, phase2_winner, player1_name, player2_name)
     pygame.quit()
