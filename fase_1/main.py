@@ -21,6 +21,7 @@ TRACK = scale_image(pygame.image.load(os.path.join(IMG_PATH, "track.png")), 1)
 # Imagem da borda da pista, usada para detectar colisões.
 # Ela deve ter o mesmo fator de escala da pista.
 TRACK_BORDER = scale_image(pygame.image.load(os.path.join(IMG_PATH, "track-border.png")), 1)
+TRACK_BORDER_MASK = pygame.mask.from_surface(TRACK_BORDER)
 
 RED_CAR = scale_image(pygame.image.load(os.path.join(IMG_PATH, "red-car.png")), 0.55)
 GREEN_CAR = scale_image(pygame.image.load(os.path.join(IMG_PATH, "green-car.png")), 0.55)
@@ -38,7 +39,7 @@ class AbstractCar:
     Centraliza a lógica de movimento, rotação, aceleração e colisão,
     permitindo que diferentes carros compartilhem o mesmo comportamento.
     """
-    def _init_(self, max_vel, rotation_vel):
+    def __init__(self, max_vel, rotation_vel):
         """Inicializa os atributos principais do carro."""
         self.img = self.IMG
         self.max_vel = max_vel
@@ -267,5 +268,5 @@ def main():
     pygame.quit()
 
 
-if _name_ == "_main_":
+if __name__ == "__main__":
     main()
