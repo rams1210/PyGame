@@ -23,7 +23,7 @@ TRACK = scale_image(pygame.image.load(os.path.join(IMG_PATH, "pista.png")), 1)
 TRACK_BORDER = scale_image(pygame.image.load(os.path.join(IMG_PATH, "contorno.png")), 1)
 TRACK_BORDER_MASK = pygame.mask.from_surface(TRACK_BORDER)
 
-RED_CAR = scale_image(pygame.image.load(os.path.join(IMG_PATH, "red-car.png")), 0.55)
+RED_CAR = scale_image(pygame.image.load(os.path.join(IMG_PATH, "mazda.png")), 0.070)
 GREEN_CAR = scale_image(pygame.image.load(os.path.join(IMG_PATH, "lfa.png")), 0.070)
 
 WIDTH, HEIGHT = TRACK.get_width(), TRACK.get_height()
