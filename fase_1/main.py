@@ -25,6 +25,9 @@ TRACK_BORDER_MASK = pygame.mask.from_surface(TRACK_BORDER)
 
 RED_CAR = scale_image(pygame.image.load(os.path.join(IMG_PATH, "mazda.png")), 0.070)
 GREEN_CAR = scale_image(pygame.image.load(os.path.join(IMG_PATH, "lfa.png")), 0.070)
+SILVER_CAR = scale_image(pygame.image.load(os.path.join(IMG_PATH, "gol.png")), 0.070)
+WHITE_CAR = scale_image(pygame.image.load(os.path.join(IMG_PATH, "miata.png")), 0.070)
+BLACK_CAR = scale_image(pygame.image.load(os.path.join(IMG_PATH, "rolls.png")), 0.070) 
 
 WIDTH, HEIGHT = TRACK.get_width(), TRACK.get_height()
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
