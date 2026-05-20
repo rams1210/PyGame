@@ -41,6 +41,7 @@ FPS = 60
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 YELLOW = (255, 221, 0)
+RED = (255, 0, 0)
 GREEN = (0, 200, 0)
 GRAY = (100, 100, 100)
 CYAN = (0, 200, 200)
@@ -116,12 +117,12 @@ def offset_closed_polyline(points: list[tuple[int, int]], offset: float) -> list
             ox, oy = n1x, n1y
 
         dot = ox * n1x + oy * n1y
-        
+
         # CÁLCULO SEGURO: Limita a aberração em curvas muito fechadas
         if dot > 0.1:
             length = offset / dot
             # A TRAVA: Impede que o offset seja maior que 1.5x o espaço original
-            length = min(length, offset * 1.5) 
+            length = min(length, offset * 1.5)
         else:
             length = offset
 
@@ -470,8 +471,8 @@ def run_phase(level: int, player1_name: str, player2_name: str):
     WIN = pygame.display.set_mode(track.get_size())
 
     # Aumentado para 35 pixels de distância do centro para evitar colisões
-    lane_offset = 22 
-    
+    lane_offset = 22
+
     # Gerando os caminhos
     center_raw_points = centerline_points(level, track)
     lane_left, lane_right = build_lane_paths(track, level, lane_offset)
