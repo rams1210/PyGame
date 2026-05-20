@@ -47,6 +47,9 @@ GRAY = (100, 100, 100)
 CYAN = (0, 200, 200)
 DARK = (20, 20, 20)
 
+# Ajuste de ângulo para correção da orientação das sprites
+AJUSTE_ANGULO = 90
+
 
 def load_image(filename: str, scale: float = 1.0, fallback: str | None = None) -> pygame.Surface:
     path = os.path.join(IMG_PATH, filename)
@@ -263,26 +266,58 @@ def build_lane_paths(track: pygame.Surface, level: int, lane_offset: int = 24):
 
 
 class SlotCar:
-    def __init__(self, image: pygame.Surface, path: list[tuple[float, float]], max_vel: float = 4.2):
-        self.img = image
+    def __init__(self, image: pygame.Surface, path: list[tuple[float, float]]):
+        self.img = image # comentario teste
         self.path = path
-        self.max_vel = max_vel
+
+        # ==========================================
+        # NOVAS VARIÁVEIS DE PUNIÇÃO (DESCARRILAR)
+        # ==========================================
+        self.max_vel = 6.0         # Velocidade máxima alcançável
+        self.derail_vel = 4.3      # Limite seguro! Passou disso, ele quebra.
+        self.crashed = False       # Estado: o carro está quebrado?
+        self.crash_timer = 0       # Cronômetro da punição
+        self.PENALTY_FRAMES = 90   # 90 frames = 1.5 segundos parado (a 60 FPS)
+
         self.vel = 0.0
         self.acceleration = 0.08
         self.angle = 0.0
         self.path_index = 0
         self.laps = 0
         self.locked = False
-        self.x, self.y = self.path[0]
-        self.sync_angle()
+
+        if self.path:
+            self.x, self.y = self.path[0]
+            self.sync_angle()
 
     def sync_angle(self):
         if len(self.path) > 1:
             nx, ny = self.path[1]
-            self.angle = -math.degrees(math.atan2(ny - self.y, nx - self.x)) + 90
+            self.angle = -math.degrees(math.atan2(ny - self.y, nx - self.x)) + AJUSTE_ANGULO
 
     def draw(self, win: pygame.Surface):
-        blit_rotate_center(win, self.img, (self.x, self.y), self.angle)
+        # EFEITO VISUAL: Se estiver quebrado, o carro pisca!
+        if self.crashed:
+            if (self.crash_timer // 5) % 2 == 0:
+                # A cada 5 frames, ele pula o desenho (causando o piscar)
+                return
+
+        # Desenha o carro normalmente
+        blit_rotate_center(win, self.img, (int(self.x), int(self.y)), self.angle)
+
+        # EFEITO VISUAL: Mostra um "!" vermelho em cima do carro quando ele quebra
+        if self.crashed:
+            aviso = FONT_MED.render("!", True, RED)
+            win.blit(aviso, (int(self.x) - 10, int(self.y) - 40))
+
+    def manage_penalty(self) -> bool:
+        """Gerencia o tempo de punição. Retorna True se o carro estiver quebrado."""
+        if self.crashed:
+            self.crash_timer -= 1
+            if self.crash_timer <= 0:
+                self.crashed = False # Terminou a punição, pode voltar a correr!
+            return True
+        return False
 
     def advance(self, distance: float):
         remaining = distance
@@ -301,13 +336,11 @@ class SlotCar:
                 if self.path_index == 0:
                     self.laps += 1
                     if self.laps >= 5:
-                        self.locked = True
-                        self.vel = 0.0
-                        return
+                        self.locked = True; self.vel = 0.0; return
                 continue
 
             step = min(remaining, dist)
-            self.angle = -math.degrees(math.atan2(dy, dx)) + 90
+            self.angle = -math.degrees(math.atan2(dy, dx)) + AJUSTE_ANGULO
             self.x += (dx / dist) * step
             self.y += (dy / dist) * step
             remaining -= step
@@ -317,32 +350,40 @@ class SlotCar:
                 if self.path_index == 0:
                     self.laps += 1
                     if self.laps >= 5:
-                        self.locked = True
-                        self.vel = 0.0
-                        return
+                        self.locked = True; self.vel = 0.0; return
             else:
                 break
 
     def accelerate(self):
-        if self.locked:
+        # Se estiver punido (manage_penalty retornar True), ignora a aceleração
+        if self.locked or self.manage_penalty():
             return
-        self.vel = min(self.vel + self.acceleration, self.max_vel)
+
+        self.vel += self.acceleration
+
+        # A MÁGICA ACONTECE AQUI:
+        if self.vel > self.derail_vel:
+            self.crashed = True
+            self.crash_timer = self.PENALTY_FRAMES
+            self.vel = 0.0 # Zera a velocidade instantaneamente
+            return
+
         self.advance(self.vel)
 
     def brake(self):
-        if self.locked:
+        if self.locked or self.manage_penalty():
             return
         self.vel = max(self.vel - self.acceleration * 2, 0.0)
         if self.vel > 0:
             self.advance(self.vel)
 
     def coast(self):
-        if self.locked:
+        if self.locked or self.manage_penalty():
             return
+        # O atrito natural reduz a velocidade se o jogador soltar o botão
         self.vel = max(self.vel - self.acceleration * 0.35, 0.0)
         if self.vel > 0:
             self.advance(self.vel)
-
 
 def center_text(surface, text, font, color, y):
     rendered = font.render(text, True, color)
